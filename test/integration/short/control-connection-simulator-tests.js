@@ -66,6 +66,20 @@ describe('ControlConnection', function() {
         .then(() => client.shutdown());
     });
   });
+
+  describe('#getLocalAddress()', () => {
+    it('should retrieve the local ip address of the host', () => {
+      const client = new Client({ contactPoints: [simulacron.startingIp], localDataCenter: 'dc1'});
+
+      client.connect()
+        .then(() => {
+          const cc = client.controlConnection;
+          assert.strictEqual(typeof cc.getLocalAddress(), 'string');
+          assert.ok(net.isIP(cc.getLocalAddress()));
+        })
+        .then(() => client.shutdown());
+    });
+  });
 });
 
 function testWithNodes(nodeVersions, expectedProtocolVersion, maxVersion) {

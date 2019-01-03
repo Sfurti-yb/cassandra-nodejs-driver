@@ -106,4 +106,11 @@ describe('ExponentialReconnectionPolicy', function () {
         new Map([['baseDelay', 2000], ['maxDelay', 100000], ['startWithNoDelay', false]]));
     });
   });
+
+  describe('#getOptions()', () => {
+    it('should return a Map with the policy options', () => {
+      helper.assertMapEqual(new reconnection.ExponentialReconnectionPolicy(2000, 100000, false).getOptions(),
+        new Map([['baseDelay', 2000], ['maxDelay', 100000], ['startWithNoDelay', false]]));
+    });
+  });
 });

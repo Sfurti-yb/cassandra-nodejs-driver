@@ -1,33 +1,21 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 'use strict';
 const assert = require('assert');
 
 const helper = require('../test-helper.js');
 const errors = require('../../lib/errors');
 const Client = require('../../lib/client.js');
-const clientOptions = require('../../lib/client-options');
-const { Host, HostMap } = require('../../lib/host');
+const clientOptions = require('../../lib/client-options.js');
+const Host = require('../../lib/host.js').Host;
+const HostMap = require('../../lib/host.js').HostMap;
 const types = require('../../lib/types');
-const utils = require('../../lib/utils');
-const { ExecutionOptions } = require('../../lib/execution-options');
-const { AllowListPolicy, LoadBalancingPolicy, TokenAwarePolicy, RoundRobinPolicy, DCAwareRoundRobinPolicy } =
-  require('../../lib/policies/load-balancing');
+const utils = require('../../lib/utils.js');
+const loadBalancing = require('../../lib/policies/load-balancing.js');
+const ExecutionOptions = require('../../lib/execution-options').ExecutionOptions;
+const LoadBalancingPolicy = loadBalancing.LoadBalancingPolicy;
+const TokenAwarePolicy = loadBalancing.TokenAwarePolicy;
+const RoundRobinPolicy = loadBalancing.RoundRobinPolicy;
+const DCAwareRoundRobinPolicy = loadBalancing.DCAwareRoundRobinPolicy;
+const WhiteListPolicy = loadBalancing.WhiteListPolicy;
 
 describe('RoundRobinPolicy', function () {
   it('should yield an error when the hosts are not set', function(done) {
@@ -247,13 +235,16 @@ describe('DCAwareRoundRobinPolicy', function () {
     const options = utils.extend({}, helper.baseOptions);
     delete options.localDataCenter;
     const client = new Client(options);
+    const logEvents = [];
+    client.on('log', function(level, className, message, furtherInfo) {
+      logEvents.push({level: level, className: className, message: message, furtherInfo: furtherInfo});
+    });
     const hosts = new HostMap();
     hosts.set('1', createHost('1', client.options));
     policy.init(client, hosts, (err) => {
       helper.assertInstanceOf(err, errors.ArgumentError);
-      assert.strictEqual(err.message,
-        `'localDataCenter' is not defined in Client options and also was not specified in constructor.` +
-        ` At least one is required. Available DCs are: [dc1]`);
+      assert.strictEqual(err.message, '\'localDataCenter\' is not defined in Client options and also was not specified' + 
+        ' in constructor. At least one is required.');
       done();
     });
   });
@@ -276,10 +267,9 @@ describe('DCAwareRoundRobinPolicy', function () {
         assert.strictEqual(logEvents.length, 1);
         const event = logEvents[0];
         assert.strictEqual(event.level, 'info');
-        assert.strictEqual(event.message,
-          `Local data center 'dc1' was provided as an argument to the load-balancing policy.` +
-          ` It is preferable to specify the local data center using 'localDataCenter' in Client options` +
-          ` instead when your application is targeting a single data center.`);
+        assert.strictEqual(event.message, 'Local data center \'dc1\' was provided as an argument to' + 
+          ' DCAwareRoundRobinPolicy. It is more preferable to specify the local data center using' + 
+          ' \'localDataCenter\' in Client options instead when your application is targeting a single data center.');
         next();
       }
     ], done);
@@ -444,7 +434,7 @@ describe('TokenAwarePolicy', function () {
     });
   });
 });
-describe('AllowListPolicy', function () {
+describe('WhiteListPolicy', function () {
   it('should use the childPolicy to determine the distance', function () {
     let getDistanceCalled = 0;
     const childPolicy = {
@@ -453,7 +443,7 @@ describe('AllowListPolicy', function () {
         return types.distance.local;
       }
     };
-    const policy = new AllowListPolicy(childPolicy, ['h1:9042', 'h2:9042']);
+    const policy = new WhiteListPolicy(childPolicy, ['h1:9042', 'h2:9042']);
     assert.strictEqual(policy.getDistance({ address: 'h1:9042'}), types.distance.local);
     assert.strictEqual(getDistanceCalled, 1);
     assert.strictEqual(policy.getDistance({ address: 'h2:9042'}), types.distance.local);
@@ -468,7 +458,7 @@ describe('AllowListPolicy', function () {
         cb(null, utils.arrayIterator([{ address: '1.1.1.1:9042'}, { address: '1.1.1.2:9042'}, { address: '1.1.1.3:9042'}]));
       }
     };
-    const policy = new AllowListPolicy(childPolicy, ['1.1.1.3:9042', '1.1.1.1:9042']);
+    const policy = new WhiteListPolicy(childPolicy, ['1.1.1.3:9042', '1.1.1.1:9042']);
     policy.newQueryPlan('ks1', {}, function (err, iterator) {
       assert.ifError(err);
       const hosts = helper.iteratorToArray(iterator);
@@ -481,8 +471,8 @@ describe('AllowListPolicy', function () {
 
   describe('#getOptions()', () => {
     it('should return a Map with the child policy name', () => {
-      helper.assertMapEqual(new AllowListPolicy(new RoundRobinPolicy(), ['a', 'b']).getOptions(),
-        new Map([['childPolicy', 'RoundRobinPolicy'], ['allowList', ['a', 'b']]]));
+      helper.assertMapEqual(new WhiteListPolicy(new RoundRobinPolicy(), ['a', 'b']).getOptions(),
+        new Map([['childPolicy', 'RoundRobinPolicy'], ['whitelist', ['a', 'b']]]));
     });
   });
 });
