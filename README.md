@@ -1,4 +1,4 @@
-# Node.js Driver for Apache Cassandra®
+#  Node.js Driver for Apache Cassandra
 
 A modern, [feature-rich](#features) and highly tunable Node.js client library for Apache Cassandra, [DSE][dse], [HCD][hcd], and [Astra DB][astra] using exclusively Cassandra's binary protocol and Cassandra Query Language.
 
@@ -273,7 +273,7 @@ This project is donated to the Apache Software Foundation and is now maintained 
 
 ## License
 
-Copyright 2013 The Apache Software Foundation
+Copyright 2018, YugaByte, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
