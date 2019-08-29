@@ -60,7 +60,11 @@ describe('encoder', function () {
       assertGuessed(new types.LocalDate(2010, 4, 29), dataTypes.date, 'Guess type for a date value failed');
       assertGuessed(new types.LocalTime(types.Long.fromString('6331999999911')), dataTypes.time, 'Guess type for a time value failed');
       assertGuessed(new Float32Array([1.2, 3.4, 5.6]), dataTypes.custom, 'Guess type for a Float32 TypedArray value failed');
-      assertGuessed({}, null, 'Objects must not be guessed');
+      assertGuessed({}, dataTypes.json, 'Guess type for object failed.');
+      assertGuessed(new Object(), dataTypes.json, 'Guess type for object failed.');
+      assertGuessed(new Object(null), dataTypes.json, 'Guess type for object failed.');
+      assertGuessed(new Object(new Object()), dataTypes.json, 'Guess type for object failed.');
+      assertGuessed(null, null, 'Guess type for null failed.');
     });
 
     function assertGuessed(value, expectedType, message) {
@@ -132,12 +136,6 @@ describe('encoder', function () {
       const unHinted = typeEncoder.encode();
       assert.strictEqual(hinted, null);
       assert.strictEqual(unHinted, null);
-    });
-
-    it('should throw on unknown types', function () {
-      assert.throws(function () {
-        typeEncoder.encode({});
-      }, TypeError);
     });
 
     it('should throw when the typeInfo and the value source type does not match', function () {
@@ -557,6 +555,24 @@ describe('encoder', function () {
       });
     });
 
+    it('should encode/decode json primitives', function(){
+      const encoder = new Encoder(3, {});
+      const type = { code: dataTypes.json, info: null};
+      let encoded, decoded;
+      [null, 12345, 'abcdef', true, false].forEach((v) => {
+        encoded = encoder.encode(v, type);
+        decoded = encoder.decode(encoded, type);
+        assert.strictEqual(decoded, v);
+      });
+    });
+    it('should encode/decode json complex values', function(){
+      const encoder = new Encoder(3, {});
+      const type = { code: dataTypes.json, info: null};
+      const value = { a: 1, b: 'z', c: null, d: true, e: false, f: { a1: 'abc', b1: 123}, g: [1, 'a', null, true, false, {a2: 'def', b2: 456}]};
+      const encoded = encoder.encode(value, type);
+      const decoded = encoder.decode(encoded, type);
+      assert.deepEqual(value,decoded);
+    });
     it('should encode/decode udts', function () {
       const encoder = new Encoder(3, {});
       const type = { code: dataTypes.udt, info: { fields:[
