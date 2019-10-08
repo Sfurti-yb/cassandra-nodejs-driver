@@ -1,9 +1,11 @@
 {
-  "name": "cassandra-driver",
-  "version": "4.10.0",
-  "description": "Apache Cassandra Node.js Driver",
-  "author": "Apache Software Foundation",
+  "name": "yb-ycql-driver",
+  "version": "4.10.0-yb",
+  "description": "Node.js Driver for YugaByte Cloud Query Language (YCQL) forked from DataStax",
+  "author": "Yugabyte",
   "keywords": [
+    "yugabyte",
+    "ycql",
     "cassandra",
     "cql",
     "cql3",
@@ -35,7 +37,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/cassandra-nodejs-driver.git"
+    "url": "https://github.com/yugabyte/cassandra-nodejs-driver.git"
   },
   "bugs": {
     "url": "https://issues.apache.org/jira/projects/CASSNODEJS/issues"
