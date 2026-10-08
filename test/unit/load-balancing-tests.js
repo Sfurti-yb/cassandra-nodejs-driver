@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 'use strict';
 const assert = require('assert');
 
@@ -243,8 +260,8 @@ describe('DCAwareRoundRobinPolicy', function () {
     hosts.set('1', createHost('1', client.options));
     policy.init(client, hosts, (err) => {
       helper.assertInstanceOf(err, errors.ArgumentError);
-      assert.strictEqual(err.message, '\'localDataCenter\' is not defined in Client options and also was not specified' + 
-        ' in constructor. At least one is required.');
+      assert.strictEqual(err.message, '\'localDataCenter\' is not defined in Client options and also was not specified' +
+        ' in constructor. At least one is required. Available DCs are: [dc1]');
       done();
     });
   });
@@ -267,8 +284,8 @@ describe('DCAwareRoundRobinPolicy', function () {
         assert.strictEqual(logEvents.length, 1);
         const event = logEvents[0];
         assert.strictEqual(event.level, 'info');
-        assert.strictEqual(event.message, 'Local data center \'dc1\' was provided as an argument to' + 
-          ' DCAwareRoundRobinPolicy. It is more preferable to specify the local data center using' + 
+        assert.strictEqual(event.message, 'Local data center \'dc1\' was provided as an argument to' +
+          ' the load-balancing policy. It is preferable to specify the local data center using' +
           ' \'localDataCenter\' in Client options instead when your application is targeting a single data center.');
         next();
       }
@@ -472,7 +489,7 @@ describe('WhiteListPolicy', function () {
   describe('#getOptions()', () => {
     it('should return a Map with the child policy name', () => {
       helper.assertMapEqual(new WhiteListPolicy(new RoundRobinPolicy(), ['a', 'b']).getOptions(),
-        new Map([['childPolicy', 'RoundRobinPolicy'], ['whitelist', ['a', 'b']]]));
+        new Map([['childPolicy', 'RoundRobinPolicy'], ['allowList', ['a', 'b']]]));
     });
   });
 });
